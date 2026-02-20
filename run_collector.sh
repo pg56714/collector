@@ -44,8 +44,9 @@ cleanup() {
     echo "Stopping all collectors..."
     if [ -f "$PID_FILE" ]; then
         while read -r pid; do
-            kill "$pid" 2>/dev/null
+            kill -INT "$pid" 2>/dev/null
         done < "$PID_FILE"
+        wait
         rm -f "$PID_FILE"
     fi
     echo "Done."
@@ -57,8 +58,9 @@ trap cleanup SIGINT SIGTERM
 if [ -f "$PID_FILE" ]; then
     echo "Stopping previous collectors..."
     while read -r pid; do
-        kill "$pid" 2>/dev/null
+        kill -INT "$pid" 2>/dev/null
     done < "$PID_FILE"
+    wait
     rm -f "$PID_FILE"
 fi
 
