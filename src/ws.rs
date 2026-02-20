@@ -8,6 +8,7 @@ use hyper_util::rt::TokioIo;
 use rustls::ClientConfig;
 use std::future::Future;
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio_rustls::TlsConnector;
 use url::Url;
@@ -45,8 +46,9 @@ pub async fn connect(url: &str) -> Result<WsStream> {
     let connector = TlsConnector::from(Arc::new(config));
 
     let addr = format!("{}:{}", host, port);
-    let tcp_stream = TcpStream::connect(&addr)
+    let tcp_stream = tokio::time::timeout(Duration::from_secs(10), TcpStream::connect(&addr))
         .await
+        .context("TCP connect timed out")?
         .context("Failed to connect via TCP")?;
     let tls_stream = connector
         .connect(domain, tcp_stream)
